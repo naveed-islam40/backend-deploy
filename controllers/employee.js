@@ -5,6 +5,14 @@ const Company = require('../models/Company');
 const fs = require('fs')
 const { default: mongoose } = require('mongoose');
 mongoose
+const AWS = require('aws-sdk');
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
+ 
 
 // Create Employee
 exports.createEmployee = asyncHandler(async (req, res) => {
@@ -138,62 +146,80 @@ exports.getEmployeesByAdminId = asyncHandler(async (req, res) => {
   }
 });
 
-// exports.uploadEmployees = async (req, res) => {
-//   if (!req.file) {
-//     return res.status(400).send('No file uploaded');
-//   }
-//   const { companyId } = req.params;
-//   console.log("companyId:", companyId);
-//   try {
-//     const company = await Company.findById(companyId);
-//     if (!company) {
-//       return res.status(404).send('Company not found');
-//     }
-//     const fileContents = fs.readFileSync(req.file.path, 'utf8');
-//     const lines = fileContents.trim().split('\n').slice(1);
+exports.uploadEmployees = async (req, res) => {
+  console.log("Req coming...");
+  if (!req.file) {
+    return res.status(400).send('No file uploaded');
+  }
 
-//     console.log(fileContents)
-//     const employees = [];
-//     for (const line of lines) {
-//       const [firstName, lastName, email, department, position, dob, gender] = line.split(/[,;]/).map(field => field.replace(/"/g, '').trim());
-//       const existingEmployee = await Employee.findOne({ email });
+  const file = req.file;
 
-//       if (existingEmployee) {
-//         console.log(`Employee with email ${email} already exists, skipping...`);
-//         continue;
-//       }
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Body: fs.createReadStream(file.path),
+    Key: `${Date.now()}_${file.originalname}`,
+    };
+   
+  const { companyId } = req.params;
+  try {
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).send('Company not found');
+    }
 
-//       const employeeData = {
-//         firstName,
-//         lastName,
-//         email,
-//         department,
-//         position,
-//         company: companyId,
-//         dob,
-//         gender
-//       };
-//       console.log("employeeData:", employeeData);
-//       const createEmployee = new Employee(employeeData);
-//       await createEmployee.save();
+    const uploadResult = await s3.upload(params).promise()
 
-//       console.log("Employee saved:", createEmployee);
+    const getObjectParams = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: params.Key,
+    };
 
-//       company.Employee.push(createEmployee);
-//       employees.push(createEmployee);
-//     }
+    const fileObject = await s3.getObject(getObjectParams).promise();
+    const fileContents = fileObject.Body.toString('utf-8');
+    const lines = fileContents.trim().split('\n').slice(1);
 
-//     await company.save();
+    console.log(fileContents)
+    const employees = [];
+    for (const line of lines) {
+      const [firstName, lastName, email, department, position, dob, gender] = line.split(/[,;]/).map(field => field.replace(/"/g, '').trim());
+      const existingEmployee = await Employee.findOne({ email });
 
-//     // Delete the uploaded file after processing
-//     fs.unlinkSync(req.file.path);
-//     res.json(employees);
+      if (existingEmployee) {
+        console.log(`Employee with email ${email} already exists, skipping...`);
+        continue;
+      }
 
-//   } catch (err) {
-//     console.error('Error:', err);
-//     res.status(500).send('Server Error');
-//   }
-// }
+      const employeeData = {
+        firstName,
+        lastName,
+        email,
+        department,
+        position,
+        company: companyId,
+        dob,
+        gender
+      };
+      console.log("employeeData:", employeeData);
+      const createEmployee = new Employee(employeeData);
+      await createEmployee.save();
+
+      console.log("Employee saved:", createEmployee);
+
+      company.Employee.push(createEmployee);
+      employees.push(createEmployee);
+    }
+
+    await company.save();
+
+    // Delete the uploaded file after processing
+    fs.unlinkSync(req.file.path);
+    res.json(employees);
+
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).send('Server Error');
+  }
+}
 
 
 exports.getEmployeesByCompanyId = asyncHandler(async (req, res) => {

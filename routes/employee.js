@@ -6,7 +6,7 @@ const { createEmployee, getEmployeeById, getAllEmployees, updateEmployee, delete
 
 
 
-// const upload = multer({ dest: 'uploads' });
+const upload = multer({ dest: 'uploads/' });
 // Create Employee
 router.post('/employee/register/:companyId', createEmployee);
 
@@ -25,7 +25,7 @@ router.patch('/update-employee/:id', updateEmployee);
 router.get("/get/admin/employee/:id", getEmployeesByAdminId)
 
 
-// router.post('/companies/:companyId/employees/upload', upload.single('file'), uploadEmployees);
+router.post('/companies/:companyId/employees/upload', upload.single('file'), uploadEmployees);
 
 router.get('/employees/:companyId', getEmployeesByCompanyId);
 

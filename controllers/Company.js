@@ -5,17 +5,16 @@ const Admin = require('../models/auth');
 // Create a new company
 exports.createCompany = asyncHandler(async (req, res) => {
     const { name, siret, numOfEmployees, address, postalCode, city } = req.body;
-    const { id } = req.params; // Get the admin ID from request parameters
+    const { id } = req.params;
 
     console.log(id);
     try {
-        // Find the admin by ID
+        
         const admin = await Admin.findById(id);
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        // Create a new company and associate it with the admin who created it
         const company = new Company({
             name,
             siret,
@@ -24,11 +23,11 @@ exports.createCompany = asyncHandler(async (req, res) => {
             postalCode,
             city,
             Admin: id,
-            adminName: admin.username // Access the 'username' field from the 'admin' object
+            adminName: admin.username 
         });
         const savedCompany = await company.save();
 
-        // Update the admin's list of companies
+     
         admin.companies.push(savedCompany._id);
         await admin.save();
 
@@ -45,13 +44,13 @@ exports.getAdminCompanies = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Find the admin by ID
+       
         const admin = await Admin.findById(id).populate('companies');
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        // Get the companies associated with the admin
+       
         const companies = admin.companies;
 
         return res.json(companies);
@@ -60,6 +59,7 @@ exports.getAdminCompanies = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Error fetching companies", error: error.message });
     }
 });
+
 // Retrieve details of a specific company
 exports.getCompanyById = asyncHandler(async (req, res) => {
     const { id } = req.params;
