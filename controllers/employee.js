@@ -199,7 +199,6 @@ exports.uploadEmployees = async (req, res) => {
         dob,
         gender
       };
-      console.log("employeeData:", employeeData);
       const createEmployee = new Employee(employeeData);
       await createEmployee.save();
 
@@ -212,7 +211,7 @@ exports.uploadEmployees = async (req, res) => {
     await company.save();
 
     // Delete the uploaded file after processing
-    fs.unlinkSync(req.file.path);
+    fs.unlinkSync(req.file.destination + '/' + req.file.filename);
     res.json(employees);
 
   } catch (err) {
