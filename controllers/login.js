@@ -2,11 +2,12 @@ const Admin = require("../models/auth");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const Company = require("../models/Company")
 
 const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    console.log("request Coming");
+    
     try {
         if (!password || !email) {
             return res.status(402).json({ message: "All fields are required" });
@@ -25,7 +26,8 @@ const login = asyncHandler(async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
-
+        console.log(adminUser._id);
+        const company = await Company.findOne({Admin: adminUser._id})
         // Generate JWT token for admin user
         const token = jwt.sign(
             { email: adminUser.email, id: adminUser._id, userType: adminUser.userType },
@@ -36,11 +38,16 @@ const login = asyncHandler(async (req, res) => {
             httpOnly: true,
         });
 
-        return res.status(201).json({ token, id: adminUser._id, userType: adminUser.userType });
+        console.log(company);
+        return res.status(201).json({ token, id: adminUser._id, userType: adminUser.userType, companyId:company._id });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 });
 
-module.exports = { login };
+const logout = asyncHandler(async (req,res)=> {
+    res.status(200).json({ message: 'Logged out successfully' });
+})
+
+module.exports = { login, logout };

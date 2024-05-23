@@ -23,7 +23,7 @@ exports.createCompany = asyncHandler(async (req, res) => {
             address,
             postalCode,
             city,
-            admin: id,
+            Admin: id,
             adminName: admin.username // Access the 'username' field from the 'admin' object
         });
         const savedCompany = await company.save();
