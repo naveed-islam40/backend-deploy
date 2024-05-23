@@ -6,7 +6,9 @@ const { createEmployee, getEmployeeById, getAllEmployees, updateEmployee, delete
 
 
 
-const upload = multer({ dest: 'uploads/' });
+const tmp = require('tmp');
+const uploadDir = tmp.dirSync();
+const upload = multer({ dest: uploadDir.name });
 // Create Employee
 router.post('/employee/register/:companyId', createEmployee);
 
