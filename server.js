@@ -17,7 +17,7 @@ connectDB()
 app.use(cors())
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://frontend-deploy-lemon.vercel.app'],
+    origin: ['http://localhost:3000', 'https://frontend-deploy-lemon.vercel.app/signup'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
