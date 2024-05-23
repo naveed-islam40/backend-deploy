@@ -1,0 +1,11 @@
+firstName,lastName,email,department,position,dob,gender
+Dupont,Jean,Finance,Analyste,jean.dupont@example.com,1980-05-15,H
+Martin,Sophie,RH,Manager,sophie.martin@example.com,1975-10-22,F
+Durand,Marc,IT,Développeur,marc.durand@example.com,1990-08-30,H
+Leroy,Claire,Marketing,Responsable,claire.leroy@example.com,1985-02-18,F
+Petit,Lucie,Finance,Comptable,lucie.petit@example.com,1992-11-12,F
+Moreau,Paul,IT,Technicien,paul.moreau@example.com,1988-07-05,H
+Girard,Emma,Ventes,Commerciale,emma.girard@example.com,1993-03-25,F
+Roux,Thomas,Logistique,Chef de Projet,thomas.roux@example.com,1979-12-09,H
+Blanc,Julie,Marketing,Assistante,julie.blanc@example.com,1986-06-14,F
+Fabre,Antoine,RH,Recruteur,antoine.fabre@example.com,1983-04-27,H

@@ -1,16 +1,16 @@
-const fs = require('fs');
 const asyncHandler = require('express-async-handler');
 const Employee = require("../models/employee");
+const Admin = require('../models/auth');
 const Company = require('../models/Company');
-const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const fs = require('fs')
+const { default: mongoose } = require('mongoose');
+mongoose
+const AWS = require('aws-sdk');
 
-// Initialize the S3 client
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
 });
  
 
@@ -146,7 +146,7 @@ exports.getEmployeesByAdminId = asyncHandler(async (req, res) => {
   }
 });
 
-exports.uploadEmployees = asyncHandler(async (req, res) => {
+exports.uploadEmployees = async (req, res) => {
   console.log("Req coming...");
   if (!req.file) {
     return res.status(400).send('No file uploaded');
@@ -158,8 +158,8 @@ exports.uploadEmployees = asyncHandler(async (req, res) => {
     Bucket: process.env.AWS_BUCKET_NAME,
     Body: fs.createReadStream(file.path),
     Key: `${Date.now()}_${file.originalname}`,
-  };
-
+    };
+   
   const { companyId } = req.params;
   try {
     const company = await Company.findById(companyId);
@@ -167,18 +167,18 @@ exports.uploadEmployees = asyncHandler(async (req, res) => {
       return res.status(404).send('Company not found');
     }
 
-    await s3Client.send(new PutObjectCommand(params));
+    const uploadResult = await s3.upload(params).promise()
 
     const getObjectParams = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: params.Key,
     };
 
-    const fileObject = await s3Client.send(new GetObjectCommand(getObjectParams));
-    const fileContents = await streamToString(fileObject.Body);
+    const fileObject = await s3.getObject(getObjectParams).promise();
+    const fileContents = fileObject.Body.toString('utf-8');
     const lines = fileContents.trim().split('\n').slice(1);
 
-    console.log(fileContents);
+    console.log(fileContents)
     const employees = [];
     for (const line of lines) {
       const [firstName, lastName, email, department, position, dob, gender] = line.split(/[,;]/).map(field => field.replace(/"/g, '').trim());
@@ -219,17 +219,7 @@ exports.uploadEmployees = asyncHandler(async (req, res) => {
     console.error('Error:', err);
     res.status(500).send('Server Error');
   }
-});
-
-// Helper function to convert stream to string
-const streamToString = (stream) => new Promise((resolve, reject) => {
-  const chunks = [];
-  stream.on("data", (chunk) => chunks.push(chunk));
-  stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
-  stream.on("error", reject);
-});
-
-
+}
 
 
 exports.getEmployeesByCompanyId = asyncHandler(async (req, res) => {
