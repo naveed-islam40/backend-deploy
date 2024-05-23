@@ -22,6 +22,11 @@ app.use(cors({
     credentials: true,
 }));
 
+app.use((req, res, next) => {
+    console.log('Request Origin:', req.headers.origin);
+    next();
+});
+
 app.use("/api/v2", adminRouter)
 app.use("/api/v2", employeeRouter)
 app.use("/api/v2", companyRouter)
