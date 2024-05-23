@@ -17,7 +17,7 @@ connectDB()
 app.use(cors())
 
 app.use(cors({
-    origin: [ 'http://localhost:3000/', 'https://bsrate-mvp-testing.vercel.app'],  // Update with your frontend's domain
+    origin: [ 'http://localhost:3000/', 'https://frontend-deploy-lemon.vercel.app'],  // Update with your frontend's domain
 }));
 
 app.use("/api/v2", adminRouter)
