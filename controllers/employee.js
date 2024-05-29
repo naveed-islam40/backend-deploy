@@ -154,6 +154,7 @@ exports.uploadEmployees = async (req, res) => {
 
   const file = req.file;
 
+  console.log(file);
 
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
